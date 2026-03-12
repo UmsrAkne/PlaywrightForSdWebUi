@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Playwright;
+using PlaywrightForSdWebUi.Models;
 using PlaywrightForSdWebUi.Utils;
 using Prism.Mvvm;
 
@@ -14,8 +15,15 @@ namespace PlaywrightForSdWebUi.ViewModels
         private IPlaywright playwright;
         private IBrowser browser;
         private IPage page;
+        private T2IGenerationTask pendingGenerationTask = new T2IGenerationTask();
 
         public string Title => appVersionInfo.Title;
+
+        public T2IGenerationTask PendingGenerationTask
+        {
+            get => pendingGenerationTask;
+            set => SetProperty(ref pendingGenerationTask, value);
+        }
 
         public AsyncRelayCommand OpenBrowserCommand => new (async () =>
         {
@@ -52,14 +60,33 @@ namespace PlaywrightForSdWebUi.ViewModels
                 return;
             }
 
-            // 例：プロンプトを自動入力
+            // 1. プロンプトの入力
             var promptSelector = "#txt2img_prompt textarea";
-            await page.FillAsync(promptSelector, "1girl, silver hair, masterpiece");
+            await page.FillAsync(promptSelector, PendingGenerationTask.Prompt);
 
-            // 反映を確認するために WebView2 をリフレッシュ（同期）
-            // 実際には Page.Fill だけでブラウザ内は更新されます
-            Console.WriteLine("プロンプトを書き換えました");
+            // 2. Negative Prompt (ネガティブプロンプト)
+            await page.GetByRole(AriaRole.Textbox, new() { Name = "Negative prompt", })
+                .FillAsync(PendingGenerationTask.NegativePrompt);
 
+            // 3. Width (幅) の入力
+            // ID "#txt2img_width" 内にある Spinbutton (数値入力欄) を特定して入力します
+            await page.Locator("#txt2img_width")
+                .GetByRole(AriaRole.Spinbutton)
+                .FillAsync(PendingGenerationTask.Width.ToString());
+
+            // 4. Height (高さ) の入力
+            await page.Locator("#txt2img_height")
+                .GetByRole(AriaRole.Spinbutton)
+                .FillAsync(PendingGenerationTask.Height.ToString());
+
+            // 5. Seed (シード値) の入力 (もし必要であれば)
+            // 名前で指定する方法が確実です
+            await page.GetByRole(AriaRole.Spinbutton, new PageGetByRoleOptions { Name = "Seed", })
+                .FillAsync("-1"); // -1 は通常ランダム
+
+            Console.WriteLine($"設定完了: {PendingGenerationTask.Width}x{PendingGenerationTask.Height}");
+
+            // 5. 生成ボタンをクリック
             await page.ClickAsync("#txt2img_generate");
             Console.WriteLine("生成ボタンを押しました");
         });
