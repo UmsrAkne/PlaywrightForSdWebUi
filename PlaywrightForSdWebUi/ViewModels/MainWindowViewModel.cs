@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Playwright;
+using PlaywrightForSdWebUi.Models;
+using PlaywrightForSdWebUi.Playwrights;
 using PlaywrightForSdWebUi.Utils;
 using Prism.Mvvm;
 
@@ -11,11 +13,17 @@ namespace PlaywrightForSdWebUi.ViewModels
     {
         private readonly AppVersionInfo appVersionInfo = new ();
 
-        private IPlaywright playwright;
-        private IBrowser browser;
-        private IPage page;
+        public MainWindowViewModel()
+        {
+            T2IGenerationPageViewModel = new ()
+            {
+                PlaywrightContext = PlaywrightContext,
+            };
+        }
 
         public string Title => appVersionInfo.Title;
+
+        public T2IGenerationPageViewModel T2IGenerationPageViewModel { get; set; }
 
         public AsyncRelayCommand OpenBrowserCommand => new (async () =>
         {
@@ -30,12 +38,12 @@ namespace PlaywrightForSdWebUi.ViewModels
 
             try
             {
-                playwright ??= await Playwright.CreateAsync();
-                browser ??= await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false, });
-                page = await browser.NewPageAsync();
+                PlaywrightContext.Playwright ??= await Playwright.CreateAsync();
+                PlaywrightContext.Browser ??= await PlaywrightContext.Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false, });
+                PlaywrightContext.Page = await PlaywrightContext.Browser.NewPageAsync();
 
                 // --- 防護策 2: 読み込み完了まで待つ ---
-                await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle, });
+                await PlaywrightContext.Page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle, });
 
                 Console.WriteLine("接続完了");
             }
@@ -45,24 +53,7 @@ namespace PlaywrightForSdWebUi.ViewModels
             }
         });
 
-        public AsyncRelayCommand GenerateImageCommand => new (async () =>
-        {
-            if (page == null)
-            {
-                return;
-            }
-
-            // 例：プロンプトを自動入力
-            var promptSelector = "#txt2img_prompt textarea";
-            await page.FillAsync(promptSelector, "1girl, silver hair, masterpiece");
-
-            // 反映を確認するために WebView2 をリフレッシュ（同期）
-            // 実際には Page.Fill だけでブラウザ内は更新されます
-            Console.WriteLine("プロンプトを書き換えました");
-
-            await page.ClickAsync("#txt2img_generate");
-            Console.WriteLine("生成ボタンを押しました");
-        });
+        private PlaywrightContext PlaywrightContext { get; set; } = new ();
 
         private async Task<bool> IsWebUiRunning(string url)
         {
