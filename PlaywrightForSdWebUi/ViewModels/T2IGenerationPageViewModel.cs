@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
@@ -28,11 +29,14 @@ namespace PlaywrightForSdWebUi.ViewModels
             set => SetProperty(ref pendingGenerationTask, value);
         }
 
+        public ObservableCollection<T2IGenerationTask> QueuedTasks { get; } = new();
+
         public AsyncRelayCommand GenerateImageCommand => new (async () =>
         {
             // 現在の入力をコピーしてキューに追加
             var taskCopy = PendingGenerationTask.Clone();
             await taskQueue.Writer.WriteAsync(taskCopy);
+            QueuedTasks.Add(taskCopy);
 
             Console.WriteLine("タスクを予約しました。");
         });
@@ -81,6 +85,8 @@ namespace PlaywrightForSdWebUi.ViewModels
                 return;
             }
 
+            task.Status = GenerationStatus.InProgress;
+
             // 1. プロンプトの入力
             var promptSelector = "#txt2img_prompt textarea";
             await PlaywrightContext.Page.FillAsync(promptSelector, task.Prompt);
@@ -114,6 +120,8 @@ namespace PlaywrightForSdWebUi.ViewModels
             // 【重要】生成が終わるまで待機するロジックが必要
             // 例: 生成ボタンが「Interrupt (中断)」から「Generate」に戻るまで待つ、など
             await WaitForGenerationCompleteAsync(PlaywrightContext.Page);
+
+            task.Status = GenerationStatus.Completed;
         }
 
         private async Task WaitForGenerationCompleteAsync(IPage page)

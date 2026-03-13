@@ -8,6 +8,7 @@ namespace PlaywrightForSdWebUi.Models
         private string negativePrompt;
         private int width;
         private int height;
+        private GenerationStatus status;
 
         public string Prompt { get => prompt; set => SetProperty(ref prompt, value); }
 
@@ -16,6 +17,8 @@ namespace PlaywrightForSdWebUi.Models
         public int Width { get => width; set => SetProperty(ref width, value); }
 
         public int Height { get => height; set => SetProperty(ref height, value); }
+
+        public GenerationStatus Status { get => status; set => SetProperty(ref status, value); }
 
         public T2IGenerationTask Clone()
         {
