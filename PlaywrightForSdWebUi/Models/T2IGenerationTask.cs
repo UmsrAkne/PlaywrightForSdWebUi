@@ -16,5 +16,16 @@ namespace PlaywrightForSdWebUi.Models
         public int Width { get => width; set => SetProperty(ref width, value); }
 
         public int Height { get => height; set => SetProperty(ref height, value); }
+
+        public T2IGenerationTask Clone()
+        {
+            return new T2IGenerationTask
+            {
+                Prompt = Prompt,
+                NegativePrompt = NegativePrompt,
+                Width = Width,
+                Height = Height,
+            };
+        }
     }
 }
