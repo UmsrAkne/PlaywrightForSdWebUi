@@ -15,7 +15,7 @@
         <Grid.InputBindings>
             <KeyBinding
                 Key="Enter"
-                Command="{Binding GenerateImageCommand}"
+                Command="{Binding T2IGenerationPageViewModel.GenerateImageCommand}"
                 Modifiers="Control" />
         </Grid.InputBindings>
 
@@ -29,7 +29,7 @@
                 x:Name="BtnSendPrompt"
                 Height="40"
                 Margin="0,10,0,0"
-                Command="{Binding GenerateImageCommand}"
+                Command="{Binding T2IGenerationPageViewModel.GenerateImageCommand}"
                 Content="プロンプトを送信して生成" />
 
             <StackPanel>
@@ -37,7 +37,7 @@
                 <TextBox
                     Height="120"
                     AcceptsReturn="True"
-                    Text="{Binding PendingGenerationTask.Prompt, UpdateSourceTrigger=PropertyChanged, Delay=1500}"
+                    Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.Prompt, UpdateSourceTrigger=PropertyChanged, Delay=1500}"
                     TextWrapping="Wrap" />
 
                 <Border Height="0" Margin="5" />
@@ -46,17 +46,17 @@
                 <TextBox
                     Height="80"
                     AcceptsReturn="True"
-                    Text="{Binding PendingGenerationTask.NegativePrompt, UpdateSourceTrigger=PropertyChanged, Delay=1500}"
+                    Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.NegativePrompt, UpdateSourceTrigger=PropertyChanged, Delay=1500}"
                     TextWrapping="Wrap" />
 
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Width:" />
-                    <TextBox Width="50" Text="{Binding PendingGenerationTask.Width, UpdateSourceTrigger=PropertyChanged, Delay=1500}" />
+                    <TextBox Width="50" Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.Width, UpdateSourceTrigger=PropertyChanged, Delay=1500}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Height:" />
-                    <TextBox Width="50" Text="{Binding PendingGenerationTask.Height, UpdateSourceTrigger=PropertyChanged, Delay=1500}" />
+                    <TextBox Width="50" Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.Height, UpdateSourceTrigger=PropertyChanged, Delay=1500}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
