@@ -56,5 +56,42 @@ namespace PlaywrightForSdWebUi.ViewModels
             await PlaywrightContext.Page.ClickAsync("#txt2img_generate");
             Console.WriteLine("生成ボタンを押しました");
         });
+
+        public AsyncRelayCommand FetchSettingsCommand => new (async () =>
+        {
+            if (PlaywrightContext.Page == null)
+            {
+                return;
+            }
+
+            // 1. プロンプトの取得
+            var promptSelector = "#txt2img_prompt textarea";
+            PendingGenerationTask.Prompt = await PlaywrightContext.Page.InputValueAsync(promptSelector);
+
+            // 2. Negative Prompt (ネガティブプロンプト) の取得
+            PendingGenerationTask.NegativePrompt
+                = await PlaywrightContext.Page.GetByRole(AriaRole.Textbox, new() { Name = "Negative prompt", })
+                .InputValueAsync();
+
+            // 3. Width (幅) の取得
+            var widthStr = await PlaywrightContext.Page.Locator("#txt2img_width")
+                .GetByRole(AriaRole.Spinbutton)
+                .InputValueAsync();
+            if (int.TryParse(widthStr, out var width))
+            {
+                PendingGenerationTask.Width = width;
+            }
+
+            // 4. Height (高さ) の取得
+            var heightStr = await PlaywrightContext.Page.Locator("#txt2img_height")
+                .GetByRole(AriaRole.Spinbutton)
+                .InputValueAsync();
+            if (int.TryParse(heightStr, out var height))
+            {
+                PendingGenerationTask.Height = height;
+            }
+
+            Console.WriteLine($"設定を取得しました: {PendingGenerationTask.Width}x{PendingGenerationTask.Height}");
+        });
     }
 }

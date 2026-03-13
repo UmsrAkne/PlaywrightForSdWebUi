@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:PlaywrightForSdWebUi.ViewModels"
+    xmlns:views="clr-namespace:PlaywrightForSdWebUi.Views"
     Title="{Binding Title}"
     Width="1024"
     d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel}"
@@ -19,46 +20,21 @@
                 Modifiers="Control" />
         </Grid.InputBindings>
 
-        <StackPanel Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="20">
             <Button
                 x:Name="BtnConnect"
                 Height="40"
                 Command="{Binding OpenBrowserCommand}"
                 Content="WebUI をブラウザで開く" />
-            <Button
-                x:Name="BtnSendPrompt"
-                Height="40"
-                Margin="0,10,0,0"
-                Command="{Binding T2IGenerationPageViewModel.GenerateImageCommand}"
-                Content="プロンプトを送信して生成" />
-
-            <StackPanel>
-                <TextBlock Text="Prompt:" />
-                <TextBox
-                    Height="120"
-                    AcceptsReturn="True"
-                    Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.Prompt, UpdateSourceTrigger=PropertyChanged, Delay=1500}"
-                    TextWrapping="Wrap" />
-
-                <Border Height="0" Margin="5" />
-
-                <TextBlock Text="Negative Prompt:" />
-                <TextBox
-                    Height="80"
-                    AcceptsReturn="True"
-                    Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.NegativePrompt, UpdateSourceTrigger=PropertyChanged, Delay=1500}"
-                    TextWrapping="Wrap" />
-
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Width:" />
-                    <TextBox Width="50" Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.Width, UpdateSourceTrigger=PropertyChanged, Delay=1500}" />
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Height:" />
-                    <TextBox Width="50" Text="{Binding T2IGenerationPageViewModel.PendingGenerationTask.Height, UpdateSourceTrigger=PropertyChanged, Delay=1500}" />
-                </StackPanel>
-            </StackPanel>
         </StackPanel>
+
+        <Border Grid.Row="1">
+            <views:T2IGenerationPage DataContext="{Binding T2IGenerationPageViewModel}" />
+        </Border>
     </Grid>
 </Window>
