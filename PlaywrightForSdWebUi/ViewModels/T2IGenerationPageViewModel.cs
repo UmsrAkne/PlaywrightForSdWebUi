@@ -85,43 +85,45 @@ namespace PlaywrightForSdWebUi.ViewModels
                 return;
             }
 
+            var page = PlaywrightContext.Page; // ショートカット
             task.Status = GenerationStatus.InProgress;
 
             // 1. プロンプトの入力
-            var promptSelector = "#txt2img_prompt textarea";
-            await PlaywrightContext.Page.FillAsync(promptSelector, task.Prompt);
+            await FillPageForceAsync("#txt2img_prompt textarea", task.Prompt);
 
-            // 2. Negative Prompt (ネガティブプロンプト)
-            await PlaywrightContext.Page.GetByRole(AriaRole.Textbox, new() { Name = "Negative prompt", })
-                .FillAsync(PendingGenerationTask.NegativePrompt);
+            // 2. Negative Prompt
+            await FillForceAsync(
+                page.GetByRole(AriaRole.Textbox, new PageGetByRoleOptions { Name = "Negative prompt", }),
+                PendingGenerationTask.NegativePrompt);
 
-            // 3. Width (幅) の入力
-            // ID "#txt2img_width" 内にある Spinbutton (数値入力欄) を特定して入力します
-            await PlaywrightContext.Page.Locator("#txt2img_width")
-                .GetByRole(AriaRole.Spinbutton)
-                .FillAsync(task.Width.ToString());
+            // 3. Width / 4. Height
+            await FillForceAsync(page.Locator("#txt2img_width").GetByRole(AriaRole.Spinbutton), task.Width.ToString());
+            await FillForceAsync(page.Locator("#txt2img_height").GetByRole(AriaRole.Spinbutton), task.Height.ToString());
 
-            // 4. Height (高さ) の入力
-            await PlaywrightContext.Page.Locator("#txt2img_height")
-                .GetByRole(AriaRole.Spinbutton)
-                .FillAsync(task.Height.ToString());
-
-            // 5. Seed (シード値) の入力 (もし必要であれば)
-            // 名前で指定する方法が確実です
-            await PlaywrightContext.Page.GetByRole(AriaRole.Spinbutton, new PageGetByRoleOptions { Name = "Seed", })
-                .FillAsync("-1"); // -1 は通常ランダム
+            // 5. Seed
+            await FillForceAsync(page.GetByRole(AriaRole.Spinbutton, new PageGetByRoleOptions { Name = "Seed", }), "-1");
 
             Console.WriteLine($"設定完了: {task.Width}x{task.Height}");
 
-            // 5. 生成ボタンをクリック
-            await PlaywrightContext.Page.ClickAsync("#txt2img_generate");
+            // 6. 生成ボタンをクリック (ClickもForce指定)
+            await page.ClickAsync("#txt2img_generate");
             Console.WriteLine("生成ボタンを押しました");
 
-            // 【重要】生成が終わるまで待機するロジックが必要
-            // 例: 生成ボタンが「Interrupt (中断)」から「Generate」に戻るまで待つ、など
-            await WaitForGenerationCompleteAsync(PlaywrightContext.Page);
-
+            await WaitForGenerationCompleteAsync(page);
             task.Status = GenerationStatus.Completed;
+
+            return;
+
+            async Task FillForceAsync(ILocator locator, string value)
+            {
+                await locator.FillAsync(value, new LocatorFillOptions { Force = true, });
+            }
+
+            // Page.Fill用：セレクター指定で入力
+            async Task FillPageForceAsync(string selector, string value)
+            {
+                await page.FillAsync(selector, value, new PageFillOptions { Force = true, });
+            }
         }
 
         private async Task WaitForGenerationCompleteAsync(IPage page)
